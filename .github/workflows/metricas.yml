@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  id-token: write
 concurrency:
   group: publicacao
   cancel-in-progress: false
@@ -33,3 +34,6 @@ jobs:
           git commit -m "Métricas atualizadas"
           git pull --rebase
           git push
+      - name: Avisar o painel
+        if: always()
+        run: node scripts/sincronizar.mjs enviar

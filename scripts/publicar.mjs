@@ -87,6 +87,8 @@ async function main() {
     if (["publicado", "falhou", "cancelado"].includes(res.status)) continue;
     const hora = quando(post);
     if (hora > agora) continue;
+    // artes recém-chegadas: espera o endereço público (GitHub Pages) ficar no ar
+    if (post.recebidoEm && agora - Date.parse(post.recebidoEm) < 10 * 60e3) { console.log(`Aguardando as artes de ${post.id} ficarem públicas`); continue; }
     if ((agora - hora) / 36e5 > JANELA_ATRASO_H) {
       gravarJson(arqRes, { ...res, status: "falhou", motivo: "Horário passou há mais de 48h sem publicar; reagende no painel.", atualizadoEm: agora.toISOString() });
       continue;
