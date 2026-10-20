@@ -1,5 +1,6 @@
 {
-  "status": "agendado",
+  "status": "cancelado",
   "tentativas": 0,
-  "atualizadoEm": "2026-10-20T20:55:29.536Z"
+  "atualizadoEm": "2026-10-20T20:57:24.552Z",
+  "motivo": "Cancelado no painel"
 }
