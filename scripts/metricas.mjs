@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { graph, exigirConfig, lerJson, gravarJson, RAIZ } from "./meta.mjs";
+import { metricasTikTok } from "./tiktok.mjs";
 
 const DIAS = 30;
 
@@ -46,11 +47,13 @@ async function main() {
   const dir = path.join(RAIZ, "resultados");
   const limite = Date.now() - DIAS * 864e5;
   let n = 0;
+  const tiktok = [];
   for (const a of fs.readdirSync(dir).filter(x => x.endsWith(".json"))) {
     const res = lerJson(path.join(dir, a));
     if (!res || res.status !== "publicado" || !res.idRede) continue;
     if (Date.parse(res.publicadoEm) < limite) continue;
     const post = lerJson(path.join(RAIZ, "fila", a), {});
+    if (post.canal === "tiktok") { tiktok.push([a, res]); continue; }
     console.log(`Métricas de ${a}`);
     const m = post.canal === "facebook" ? await metricasFacebook(res.idRede) : await metricasInstagram(res.idRede, post.formato);
     const limpo = Object.fromEntries(Object.entries(m).filter(([, v]) => typeof v === "number"));
@@ -58,6 +61,16 @@ async function main() {
       gravarJson(path.join(dir, a), { ...res, metricas: { ...(res.metricas || {}), ...limpo }, metricasEm: new Date().toISOString() });
       n++;
     }
+  }
+  if (tiktok.length) {
+    try {
+      const m = await metricasTikTok(tiktok.map(([, r]) => r.idRede));
+      for (const [a, res] of tiktok) {
+        const v = m[res.idRede]; if (!v) continue;
+        const limpo = Object.fromEntries(Object.entries(v).filter(([, x]) => typeof x === "number"));
+        gravarJson(path.join(dir, a), { ...res, metricas: { ...(res.metricas || {}), ...limpo }, metricasEm: new Date().toISOString() }); n++;
+      }
+    } catch (e) { console.log("  aviso TikTok: " + e.message); }
   }
   console.log(`Métricas atualizadas em ${n} post(s).`);
 }

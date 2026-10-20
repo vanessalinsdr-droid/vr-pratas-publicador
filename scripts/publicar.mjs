@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { graph, esperar, exigirConfig, lerJson, gravarJson, urlPublica, quando, RAIZ, IG_ID, PAGE_ID } from "./meta.mjs";
+import { publicarTikTok } from "./tiktok.mjs";
 
 const MAX_TENTATIVAS = 3;
 const JANELA_ATRASO_H = 48; // posts atrasados mais que isso não são publicados sozinhos
@@ -81,7 +82,7 @@ async function main() {
   for (const a of arquivos) {
     const post = lerJson(path.join(dirFila, a));
     if (!post || !post.liberado) continue;
-    if (post.canal !== "instagram" && post.canal !== "facebook") continue; // TikTok segue outro caminho
+    if (!["instagram", "facebook", "tiktok"].includes(post.canal)) continue;
     const arqRes = path.join(RAIZ, "resultados", a);
     const res = lerJson(arqRes, { status: "agendado", tentativas: 0 });
     if (["publicado", "falhou", "cancelado"].includes(res.status)) continue;
@@ -95,11 +96,11 @@ async function main() {
     }
     try {
       console.log(`Publicando ${post.id} no ${post.canal} (${post.formato})`);
-      const r = post.canal === "instagram" ? await publicarInstagram(post) : await publicarFacebook(post);
-      gravarJson(arqRes, { status: "publicado", publicadoEm: new Date().toISOString(), idRede: r.idRede, link: r.link, tentativas: (res.tentativas || 0) + 1, metricas: {}, atualizadoEm: new Date().toISOString() });
+      const r = post.canal === "instagram" ? await publicarInstagram(post) : post.canal === "tiktok" ? await publicarTikTok(post) : await publicarFacebook(post);
+      gravarJson(arqRes, { status: "publicado", publicadoEm: new Date().toISOString(), idRede: r.idRede, link: r.link, motivo: r.aviso || "", tentativas: (res.tentativas || 0) + 1, metricas: {}, atualizadoEm: new Date().toISOString() });
       publicados++;
     } catch (e) {
-      const t = (res.tentativas || 0) + 1;
+      const t = e.semConexao ? MAX_TENTATIVAS : (res.tentativas || 0) + 1; // TikTok sem conexão: não adianta tentar de novo
       console.log(`Falhou ${post.id}: ${e.message}`);
       gravarJson(arqRes, { ...res, status: t >= MAX_TENTATIVAS ? "falhou" : "agendado", tentativas: t, motivo: e.message, atualizadoEm: new Date().toISOString() });
     }

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Conexão com o TikTok · Publicador VR Pratas</title>
+<style>
+:root{--bg:#f6f8fb;--fg:#0b1a2b;--muted:#5d6e82;--ok:#17845a;--err:#c23a32;--brand:#0b2440}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:grid;place-items:center;min-height:100vh;padding:0 16px}
+.card{background:#fff;border:1px solid #dbe3ec;border-radius:14px;padding:28px;max-width:440px;width:100%;text-align:center}
+h1{font-size:20px;margin:0 0 8px}p{color:var(--muted);margin:0}
+.ok h1{color:var(--ok)}.err h1{color:var(--err)}
+</style>
+</head>
+<body>
+<div class="card" id="c"><h1>Conferindo…</h1><p></p></div>
+<script>
+const q=new URLSearchParams(location.search),c=document.getElementById("c"),h=c.querySelector("h1"),p=c.querySelector("p");
+if(q.get("ok")){c.className="card ok";h.textContent="TikTok conectado";p.textContent=(q.get("conta")?"Conta "+q.get("conta")+". ":"")+"Pode fechar esta página e voltar ao Claude."}
+else if(q.get("erro")){c.className="card err";h.textContent="Não deu certo";p.textContent=q.get("erro")}
+else{h.textContent="Publicador VR Pratas";p.textContent="Esta página mostra o resultado da conexão com o TikTok."}
+</script>
+</body>
+</html>
