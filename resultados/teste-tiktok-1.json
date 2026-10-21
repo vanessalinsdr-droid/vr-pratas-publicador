@@ -1,5 +1,6 @@
 {
   "status": "agendado",
-  "tentativas": 0,
-  "atualizadoEm": "2026-10-21T14:06:09.494Z"
+  "tentativas": 1,
+  "atualizadoEm": "2026-10-21T14:17:03.411Z",
+  "motivo": "TikTok: Please review our integration guidelines at https://developers.tiktok.com/doc/content-sharing-guidelines/"
 }
