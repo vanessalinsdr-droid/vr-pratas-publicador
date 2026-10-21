@@ -1,0 +1,16 @@
+{
+  "id": "teste-tiktok-1",
+  "canal": "tiktok",
+  "formato": "feed",
+  "data": "2026-10-21",
+  "hora": "11:05",
+  "legendaFinal": "Teste do publicador VR Pratas (visível só para a conta). Corrente Masculina Maciça Prata 925.",
+  "midias": [
+    {
+      "arquivo": "midia/teste-tiktok-1/1.jpg",
+      "tipo": "foto"
+    }
+  ],
+  "liberado": true,
+  "recebidoEm": "2026-10-21T14:06:09.494Z"
+}
