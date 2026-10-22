@@ -75,6 +75,15 @@ async function publicarInstagram(post) {
   await esperarContainer(criacao);
   const pub = await graph("POST", `${IG_ID}/media_publish`, { creation_id: criacao });
   const info = await graph("GET", pub.id, { fields: "permalink" }).catch(() => ({}));
+  // também nos Stories: mesma arte, logo depois do post (se falhar, o post do feed continua valendo)
+  if (post.story && post.formato !== "story" && post.formato !== "reels" && post.formato !== "video") {
+    try {
+      const f = m.find(x => x.tipo === "foto") || m[0];
+      const st = (await graph("POST", `${IG_ID}/media`, { media_type: "STORIES", image_url: urlPublica(f.arquivo) })).id;
+      await esperarContainer(st);
+      await graph("POST", `${IG_ID}/media_publish`, { creation_id: st });
+    } catch (e) { aviso = (aviso ? aviso + " " : "") + "Não saiu nos Stories (" + e.message + ")."; }
+  }
   return { idRede: pub.id, link: info.permalink || "", aviso };
 }
 

@@ -81,6 +81,7 @@ async function baixar() {
         id: p.id, canal: p.canal, formato: p.formato, data: p.data, hora: p.hora,
         legendaFinal: p.legendaFinal || "", midias, liberado: true, recebidoEm: new Date().toISOString(),
         produto: (p.midias && p.midias[0] && p.midias[0].produto) || null,
+        story: !!(p.midias && p.midias[0] && p.midias[0].story),
       });
       // liberado de novo depois de uma falha ou cancelamento: volta para a fila do zero
       const res = lerJson(arqRes, null);
