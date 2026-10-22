@@ -5,6 +5,7 @@
 // A identidade do robô é provada com o token OIDC do próprio GitHub Actions: não há senha guardada.
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { lerJson, gravarJson, RAIZ } from "./meta.mjs";
 
 const PONTE = process.env.MARKETING_URL || "https://fecizzdgsggdsfaothnc.supabase.co/functions/v1/publicador";
@@ -65,7 +66,15 @@ async function baixar() {
         const dados = Buffer.from(await r.arrayBuffer());
         fs.mkdirSync(path.join(RAIZ, "midia", p.id), { recursive: true });
         fs.writeFileSync(path.join(RAIZ, m.arquivo), dados);
-        midias.push({ arquivo: m.arquivo, tipo: m.tipo === "video" ? "video" : "foto" });
+        let arquivo = m.arquivo;
+        // o TikTok só aceita foto em JPG/WEBP: converte as artes PNG do painel
+        if (p.canal === "tiktok" && m.tipo !== "video" && /\.png$/i.test(arquivo)) {
+          const jpg = arquivo.replace(/\.png$/i, ".jpg");
+          execFileSync("ffmpeg", ["-y", "-v", "error", "-i", path.join(RAIZ, arquivo), "-q:v", "2", path.join(RAIZ, jpg)]);
+          fs.rmSync(path.join(RAIZ, arquivo), { force: true });
+          arquivo = jpg;
+        }
+        midias.push({ arquivo, tipo: m.tipo === "video" ? "video" : "foto" });
       }
       if (!midias.length) throw new Error("post sem arte");
       gravarJson(path.join(RAIZ, arqFila), {

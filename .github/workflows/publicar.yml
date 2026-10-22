@@ -1,9 +1,10 @@
 name: Publicar posts
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 permissions:
+  actions: write
   contents: write
   id-token: write
 concurrency:
@@ -12,7 +13,7 @@ concurrency:
 jobs:
   publicar:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -51,3 +52,13 @@ jobs:
       - name: Avisar o painel
         if: always()
         run: node scripts/sincronizar.mjs enviar
+      - name: Chamar a próxima rodada quando houver post esperando
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          s=$(node scripts/proxima.mjs || true)
+          if [ -z "$s" ]; then echo "Nada esperando na fila."; exit 0; fi
+          echo "Próxima rodada em ${s}s"
+          sleep "$s"
+          gh workflow run publicar.yml --repo "${{ github.repository }}" --ref main
