@@ -1,5 +1,10 @@
 {
-  "status": "agendado",
-  "tentativas": 0,
-  "atualizadoEm": "2026-10-22T15:09:43.209Z"
+  "status": "publicado",
+  "publicadoEm": "2026-10-22T15:10:43.085Z",
+  "idRede": "217985504732183_122293706642189399",
+  "link": "https://www.facebook.com/122293706648189399/posts/122293706642189399",
+  "motivo": "",
+  "tentativas": 1,
+  "metricas": {},
+  "atualizadoEm": "2026-10-22T15:10:43.085Z"
 }
