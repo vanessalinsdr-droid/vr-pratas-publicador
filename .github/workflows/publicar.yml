@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -32,6 +34,8 @@ jobs:
             git push
           fi
           node scripts/sincronizar.mjs confirmar
+      - name: Atualizar com o que outra rodada já publicou
+        run: git pull --rebase --quiet origin main
       - name: Publicar o que já chegou no horário
         env:
           META_TOKEN: ${{ secrets.META_TOKEN }}
