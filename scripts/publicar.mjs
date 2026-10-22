@@ -73,6 +73,19 @@ async function publicarFacebook(post) {
   return { idRede: id, link: info.permalink_url || "" };
 }
 
+async function artesNoAr(post) {
+  for (let i = 0; i < 24; i++) {
+    let ok = true;
+    for (const m of post.midias || []) {
+      const r = await fetch(urlPublica(m.arquivo), { method: "HEAD", cache: "no-store" }).catch(() => null);
+      if (!r || !r.ok) { ok = false; break; }
+    }
+    if (ok) return true;
+    await esperar(10000);
+  }
+  return false;
+}
+
 async function main() {
   exigirConfig();
   const agora = new Date();
@@ -88,8 +101,8 @@ async function main() {
     if (["publicado", "falhou", "cancelado"].includes(res.status)) continue;
     const hora = quando(post);
     if (hora > agora) continue;
-    // artes recém-chegadas: espera o endereço público (GitHub Pages) ficar no ar
-    if (post.recebidoEm && agora - Date.parse(post.recebidoEm) < 10 * 60e3) { console.log(`Aguardando as artes de ${post.id} ficarem públicas`); continue; }
+    // artes recém-chegadas: espera o endereço público (GitHub Pages) ficar no ar (até 4 min)
+    if (!(await artesNoAr(post))) { console.log(`Artes de ${post.id} ainda não estão no ar; fica para a próxima rodada`); continue; }
     if ((agora - hora) / 36e5 > JANELA_ATRASO_H) {
       gravarJson(arqRes, { ...res, status: "falhou", motivo: "Horário passou há mais de 48h sem publicar; reagende no painel.", atualizadoEm: agora.toISOString() });
       continue;

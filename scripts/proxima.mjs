@@ -14,7 +14,7 @@ for (const a of fs.readdirSync(path.join(RAIZ, "fila")).filter(x => x.endsWith("
   const res = lerJson(path.join(RAIZ, "resultados", a), { status: "agendado" });
   if (res.status !== "agendado") continue;
   let t = quando(post).getTime();
-  if (post.recebidoEm) t = Math.max(t, Date.parse(post.recebidoEm) + 10 * 60e3 + 30e3);
+  if (post.recebidoEm) t = Math.max(t, Date.parse(post.recebidoEm) + 60e3);
   if (t <= agora) t = agora + 5 * 60e3; // atrasado ou tentando de novo depois de uma falha
   if (t - agora <= HORIZONTE_H * 36e5) proximo = Math.min(proximo, t);
 }
