@@ -18,10 +18,30 @@ async function esperarContainer(id) {
   throw new Error("Instagram demorou demais para processar o vídeo");
 }
 
+// Procura a peça no catálogo da loja do Instagram (pelo código SKU e, se não achar, pelo nome).
+const CATALOGO = process.env.CATALOGO_ID || "8886435968042543";
+async function produtoDoCatalogo(produto) {
+  if (!produto) return { id: null };
+  const tentativas = [produto.sku, produto.nome].filter(Boolean).map(String);
+  try {
+    for (const q of tentativas) {
+      const r = await graph("GET", `${IG_ID}/catalog_product_search`, { catalog_id: CATALOGO, q });
+      const lista = (r.data || []).filter(x => !x.review_status || x.review_status === "approved");
+      const igual = lista.find(x => String(x.retailer_id || "") === String(produto.sku || "")) ||
+        lista.find(x => String(x.product_name || x.name || "").toLowerCase() === String(produto.nome || "").toLowerCase()) ||
+        (q === produto.sku ? null : lista[0]);
+      if (igual) return { id: igual.product_id || igual.id };
+    }
+    return { id: null, aviso: "Peça não encontrada no catálogo do Instagram; publicado sem marcar o produto." };
+  } catch (e) {
+    return { id: null, aviso: "Publicado sem marcar o produto (" + e.message + ")." };
+  }
+}
+
 async function publicarInstagram(post) {
   const m = post.midias;
   const legenda = post.legendaFinal || "";
-  let criacao;
+  let criacao, aviso = "";
   if (post.formato === "story") {
     const v = m[0];
     criacao = (await graph("POST", `${IG_ID}/media`, v.tipo === "video"
@@ -43,12 +63,19 @@ async function publicarInstagram(post) {
     criacao = (await graph("POST", `${IG_ID}/media`, { media_type: "CAROUSEL", children: filhos.join(","), caption: legenda })).id;
   } else {
     const f = m.find(x => x.tipo === "foto") || m[0];
-    criacao = (await graph("POST", `${IG_ID}/media`, { image_url: urlPublica(f.arquivo), caption: legenda })).id;
+    const prod = await produtoDoCatalogo(post.produto);
+    aviso = prod.aviso || "";
+    const base = { image_url: urlPublica(f.arquivo), caption: legenda };
+    if (prod.id) {
+      try { criacao = (await graph("POST", `${IG_ID}/media`, { ...base, product_tags: JSON.stringify([{ product_id: prod.id, x: 0.5, y: 0.62 }]) })).id; }
+      catch (e) { aviso = "Publicado sem marcar o produto (" + e.message + ")."; }
+    }
+    if (!criacao) criacao = (await graph("POST", `${IG_ID}/media`, base)).id;
   }
   await esperarContainer(criacao);
   const pub = await graph("POST", `${IG_ID}/media_publish`, { creation_id: criacao });
   const info = await graph("GET", pub.id, { fields: "permalink" }).catch(() => ({}));
-  return { idRede: pub.id, link: info.permalink || "" };
+  return { idRede: pub.id, link: info.permalink || "", aviso };
 }
 
 async function publicarFacebook(post) {
