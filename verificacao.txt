@@ -1,6 +1,11 @@
 ✔ Página do Facebook: V Pratas e Folheados
 ✔ Instagram: @vpratasefolheados18k
-✔ Publicações usadas nas últimas 24h: 0 de 100
+✔ Publicações usadas nas últimas 24h: 1 de 100
 ✔ Endereço público das artes funcionando: https://vanessalinsdr-droid.github.io/vr-pratas-publicador
+Permissões da chave: não foi possível listar ((#100) Tried accessing nonexisting field (permissions))
+Instagram pode marcar produtos: erro: (#10) Application does not have permission for this action
+Catálogos disponíveis para marcar: erro: (#10) Application does not have permission for this action
+Busca no catálogo (Coração Ponto de Luz): erro: (#10) Application does not have permission for this action
+Exemplo de produtos do catálogo: erro: Unsupported get request. Object with ID '8886435968042543' does not exist, cannot be loaded due to missing permissions, or does not support this operation. Please read the Graph API documentation at https://developers.facebook.com/docs/graph-api
 Tudo certo para publicar.
-Testado em 2026-10-20T13:12:46Z
+Testado em 2026-10-22T17:32:39Z
