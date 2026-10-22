@@ -2,7 +2,7 @@
 // Roda a cada 15 minutos pelo GitHub Actions. Cada post publicado gera um arquivo em resultados/.
 import fs from "node:fs";
 import path from "node:path";
-import { graph, esperar, exigirConfig, lerJson, gravarJson, urlPublica, quando, RAIZ, IG_ID, PAGE_ID } from "./meta.mjs";
+import { graph, tokenPagina, esperar, exigirConfig, lerJson, gravarJson, urlPublica, quando, RAIZ, IG_ID, PAGE_ID } from "./meta.mjs";
 import { publicarTikTok } from "./tiktok.mjs";
 
 const MAX_TENTATIVAS = 3;
@@ -79,24 +79,26 @@ async function publicarInstagram(post) {
 }
 
 async function publicarFacebook(post) {
+  const tk = await tokenPagina();
+  const fb = (metodo, caminho, params) => graph(metodo, caminho, params, tk);
   const m = post.midias;
   const legenda = post.legendaFinal || "";
   let id;
   if (post.formato === "reels" || post.formato === "video") {
     const v = m.find(x => x.tipo === "video");
     if (!v) throw new Error("Post de vídeo sem vídeo");
-    id = (await graph("POST", `${PAGE_ID}/videos`, { file_url: urlPublica(v.arquivo), description: legenda })).id;
+    id = (await fb("POST", `${PAGE_ID}/videos`, { file_url: urlPublica(v.arquivo), description: legenda })).id;
   } else if (post.formato === "carrossel" && m.length > 1) {
     const fotos = [];
-    for (const f of m.filter(x => x.tipo === "foto").slice(0, 10)) fotos.push((await graph("POST", `${PAGE_ID}/photos`, { url: urlPublica(f.arquivo), published: false })).id);
+    for (const f of m.filter(x => x.tipo === "foto").slice(0, 10)) fotos.push((await fb("POST", `${PAGE_ID}/photos`, { url: urlPublica(f.arquivo), published: false })).id);
     const anexos = {}; fotos.forEach((fid, i) => { anexos[`attached_media[${i}]`] = JSON.stringify({ media_fbid: fid }); });
-    id = (await graph("POST", `${PAGE_ID}/feed`, { message: legenda, ...anexos })).id;
+    id = (await fb("POST", `${PAGE_ID}/feed`, { message: legenda, ...anexos })).id;
   } else {
     const f = m.find(x => x.tipo === "foto") || m[0];
-    const r = await graph("POST", `${PAGE_ID}/photos`, { url: urlPublica(f.arquivo), caption: legenda, published: true });
+    const r = await fb("POST", `${PAGE_ID}/photos`, { url: urlPublica(f.arquivo), caption: legenda, published: true });
     id = r.post_id || r.id;
   }
-  const info = await graph("GET", id, { fields: "permalink_url" }).catch(() => ({}));
+  const info = await fb("GET", id, { fields: "permalink_url" }).catch(() => ({}));
   return { idRede: id, link: info.permalink_url || "" };
 }
 

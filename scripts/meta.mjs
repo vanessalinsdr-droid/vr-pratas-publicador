@@ -16,17 +16,25 @@ export function exigirConfig() {
   if (faltando.length) throw new Error("Configuração faltando no GitHub: " + faltando.join(", "));
 }
 
-export async function graph(metodo, caminho, params = {}) {
+// Chave da Página: se a chave guardada for de usuário (ou usuário do sistema), troca pela chave da Página.
+let chavePagina = null;
+export async function tokenPagina() {
+  if (chavePagina) return chavePagina;
+  const r = await graph("GET", PAGE_ID, { fields: "access_token" }).catch(() => ({}));
+  return (chavePagina = r.access_token || TOKEN);
+}
+
+export async function graph(metodo, caminho, params = {}, token = TOKEN) {
   const url = new URL(API + "/" + caminho.replace(/^\//, ""));
   const corpo = new URLSearchParams();
   const alvo = metodo === "GET" ? url.searchParams : corpo;
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) alvo.set(k, typeof v === "object" ? JSON.stringify(v) : String(v));
-  alvo.set("access_token", TOKEN);
+  alvo.set("access_token", token);
   const r = await fetch(url, metodo === "GET" ? {} : { method: metodo, body: corpo });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || j.error) {
     const e = j.error || {};
-    const msg = (e.error_user_msg || e.message || ("HTTP " + r.status)).replace(TOKEN, "***");
+    const msg = (e.error_user_msg || e.message || ("HTTP " + r.status)).replace(TOKEN, "***").replace(token, "***");
     const err = new Error(msg); err.codigo = e.code; err.sub = e.error_subcode; throw err;
   }
   return j;

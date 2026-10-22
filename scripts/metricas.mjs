@@ -1,7 +1,7 @@
 // Busca as métricas dos posts publicados nos últimos 30 dias e grava em resultados/.
 import fs from "node:fs";
 import path from "node:path";
-import { graph, exigirConfig, lerJson, gravarJson, RAIZ } from "./meta.mjs";
+import { graph, tokenPagina, exigirConfig, lerJson, gravarJson, RAIZ } from "./meta.mjs";
 import { metricasTikTok } from "./tiktok.mjs";
 
 const DIAS = 30;
@@ -28,14 +28,15 @@ async function metricasInstagram(id, formato) {
 
 async function metricasFacebook(id) {
   const out = {};
-  const base = await tentar(() => graph("GET", id, { fields: "reactions.summary(total_count),comments.summary(total_count),shares" }));
+  const tk = await tokenPagina();
+  const base = await tentar(() => graph("GET", id, { fields: "reactions.summary(total_count),comments.summary(total_count),shares" }, tk));
   if (base) {
     out.curtidas = base.reactions?.summary?.total_count ?? null;
     out.comentarios = base.comments?.summary?.total_count ?? null;
     out.compartilhamentos = base.shares?.count ?? 0;
   }
   for (const metrica of ["post_impressions_unique", "post_total_media_view_unique"]) {
-    const ins = await tentar(() => graph("GET", `${id}/insights`, { metric: metrica }));
+    const ins = await tentar(() => graph("GET", `${id}/insights`, { metric: metrica }, tk));
     const v = ins?.data?.[0]?.values?.[0]?.value;
     if (typeof v === "number") { out.alcance = v; break; }
   }
