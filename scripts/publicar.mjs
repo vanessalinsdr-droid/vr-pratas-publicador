@@ -22,16 +22,20 @@ async function esperarContainer(id) {
 const CATALOGO = process.env.CATALOGO_ID || "8886435968042543";
 async function produtoDoCatalogo(produto) {
   if (!produto) return { id: null };
-  const tentativas = [produto.sku, produto.nome].filter(Boolean).map(String);
+  const norm = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const slug = u => { const m = String(u || "").match(/\/produtos\/([^/?#]+)/); return m ? m[1] : ""; };
+  const alvoSlug = slug(produto.url), alvoNome = norm(produto.nome);
   try {
-    for (const q of tentativas) {
-      const r = await graph("GET", `${IG_ID}/catalog_product_search`, { catalog_id: CATALOGO, q });
-      const lista = (r.data || []).filter(x => !x.review_status || x.review_status === "approved");
-      const igual = lista.find(x => String(x.retailer_id || "") === String(produto.sku || "")) ||
-        lista.find(x => String(x.product_name || x.name || "").toLowerCase() === String(produto.nome || "").toLowerCase()) ||
-        (q === produto.sku ? null : lista[0]);
-      if (igual) return { id: igual.product_id || igual.id };
+    const r = await graph("GET", `${IG_ID}/catalog_product_search`, { catalog_id: CATALOGO, q: produto.nome });
+    const lista = (r.data || []).filter(x => !x.review_status || x.review_status === "approved");
+    // 1) pelo endereço da peça no site (o mais seguro)
+    if (alvoSlug) for (const x of lista.slice(0, 8)) {
+      const d = await graph("GET", String(x.product_id), { fields: "url" }).catch(() => ({}));
+      if (slug(d.url) === alvoSlug) return { id: x.product_id };
     }
+    // 2) pelo nome idêntico
+    const igual = lista.find(x => norm(x.product_name) === alvoNome);
+    if (igual) return { id: igual.product_id };
     return { id: null, aviso: "Peça não encontrada no catálogo do Instagram; publicado sem marcar o produto." };
   } catch (e) {
     return { id: null, aviso: "Publicado sem marcar o produto (" + e.message + ")." };
