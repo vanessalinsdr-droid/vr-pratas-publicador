@@ -43,7 +43,8 @@ async function produtoDoCatalogo(produto) {
 }
 
 async function publicarInstagram(post) {
-  const m = post.midias;
+  // "storyArte": versão em pé (9:16) da arte, feita pelo sistema só para os Stories; não entra no post do feed
+  const m = (post.midias || []).filter(x => !x.storyArte), artesStory = (post.midias || []).find(x => x.storyArte);
   const legenda = post.legendaFinal || "";
   let criacao, aviso = "";
   if (post.formato === "story") {
@@ -82,7 +83,7 @@ async function publicarInstagram(post) {
   // também nos Stories: mesma arte, logo depois do post (se falhar, o post do feed continua valendo)
   if (post.story && post.formato !== "story" && post.formato !== "reels" && post.formato !== "video") {
     try {
-      const f = m.find(x => x.tipo === "foto") || m[0];
+      const f = artesStory || m.find(x => x.tipo === "foto") || m[0];
       const st = (await graph("POST", `${IG_ID}/media`, { media_type: "STORIES", image_url: urlPublica(f.arquivo) })).id;
       await esperarContainer(st);
       await graph("POST", `${IG_ID}/media_publish`, { creation_id: st });
@@ -94,7 +95,7 @@ async function publicarInstagram(post) {
 async function publicarFacebook(post) {
   const tk = await tokenPagina();
   const fb = (metodo, caminho, params) => graph(metodo, caminho, params, tk);
-  const m = post.midias;
+  const m = (post.midias || []).filter(x => !x.storyArte);
   const legenda = post.legendaFinal || "";
   let id;
   if (post.formato === "reels" || post.formato === "video") {

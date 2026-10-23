@@ -74,7 +74,7 @@ async function baixar() {
           fs.rmSync(path.join(RAIZ, arquivo), { force: true });
           arquivo = jpg;
         }
-        midias.push({ arquivo, tipo: m.tipo === "video" ? "video" : "foto" });
+        midias.push({ arquivo, tipo: m.tipo === "video" ? "video" : "foto", ...(m.storyArte ? { storyArte: true } : {}) });
       }
       if (!midias.length) throw new Error("post sem arte");
       gravarJson(path.join(RAIZ, arqFila), {
