@@ -1,5 +1,10 @@
 {
-  "status": "agendado",
-  "tentativas": 0,
-  "atualizadoEm": "2026-10-26T14:59:01.611Z"
+  "status": "publicado",
+  "publicadoEm": "2026-10-26T15:00:21.677Z",
+  "idRede": "v_inbox_file~v2.7700991244444616725",
+  "link": "",
+  "motivo": "Enviado como rascunho para o app do TikTok da loja (o TikTok ainda não aprovou a publicação direta). Abra o TikTok no celular, veja as notificações da caixa de entrada e toque em publicar.",
+  "tentativas": 1,
+  "metricas": {},
+  "atualizadoEm": "2026-10-26T15:00:21.678Z"
 }
