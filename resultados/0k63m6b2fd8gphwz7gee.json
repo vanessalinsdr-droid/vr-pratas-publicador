@@ -1,5 +1,10 @@
 {
-  "status": "agendado",
-  "tentativas": 0,
-  "atualizadoEm": "2026-10-26T15:24:14.266Z"
+  "status": "publicado",
+  "publicadoEm": "2026-10-26T15:27:15.351Z",
+  "idRede": "18017252639955792",
+  "link": "https://www.instagram.com/reel/De9mhBZCBBI/",
+  "motivo": "",
+  "tentativas": 1,
+  "metricas": {},
+  "atualizadoEm": "2026-10-26T15:27:15.352Z"
 }
