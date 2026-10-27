@@ -56,12 +56,27 @@ async function publicarInstagram(post) {
     const v = m.find(x => x.tipo === "video");
     if (!v) throw new Error("Post de vídeo sem vídeo");
     const capa = m.find(x => x.tipo === "foto");
-    criacao = (await graph("POST", `${IG_ID}/media`, { media_type: "REELS", video_url: urlPublica(v.arquivo), caption: legenda, cover_url: capa ? urlPublica(capa.arquivo) : undefined, share_to_feed: true })).id;
+    const base = { media_type: "REELS", video_url: urlPublica(v.arquivo), caption: legenda, cover_url: capa ? urlPublica(capa.arquivo) : undefined, share_to_feed: true };
+    // etiqueta do catálogo no Reels (se o Instagram recusar, publica sem a etiqueta e anota o motivo)
+    const prod = await produtoDoCatalogo(post.produto); aviso = prod.aviso || "";
+    if (prod.id) {
+      try { criacao = (await graph("POST", `${IG_ID}/media`, { ...base, product_tags: JSON.stringify([{ product_id: prod.id }]) })).id; await esperarContainer(criacao); }
+      catch (e) { criacao = null; aviso = "Publicado sem marcar o produto (" + e.message + ")."; }
+    }
+    if (!criacao) criacao = (await graph("POST", `${IG_ID}/media`, base)).id;
   } else if (post.formato === "carrossel" && m.length > 1) {
     const filhos = [];
+    // etiqueta do catálogo na primeira foto do carrossel (se o Instagram recusar, segue sem a etiqueta)
+    const prod = await produtoDoCatalogo(post.produto); aviso = prod.aviso || ""; let marcou = !prod.id;
     for (const f of m.slice(0, 10)) {
       const p = f.tipo === "video" ? { media_type: "VIDEO", video_url: urlPublica(f.arquivo), is_carousel_item: true } : { image_url: urlPublica(f.arquivo), is_carousel_item: true };
-      const id = (await graph("POST", `${IG_ID}/media`, p)).id;
+      let id = null;
+      if (!marcou && f.tipo !== "video") {
+        marcou = true;
+        try { id = (await graph("POST", `${IG_ID}/media`, { ...p, product_tags: JSON.stringify([{ product_id: prod.id, x: 0.5, y: 0.62 }]) })).id; }
+        catch (e) { aviso = "Publicado sem marcar o produto (" + e.message + ")."; }
+      }
+      if (!id) id = (await graph("POST", `${IG_ID}/media`, p)).id;
       if (f.tipo === "video") await esperarContainer(id);
       filhos.push(id);
     }
