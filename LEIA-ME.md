@@ -14,6 +14,7 @@ Os posts liberados no painel chegam por `scripts/sincronizar.mjs`: o robô busca
 - **Publicar posts** — a cada 15 minutos publica o que já chegou no horário.
 - **Buscar métricas** — toda noite lê alcance, curtidas, comentários e compartilhamentos dos últimos 30 dias.
 - **Testar configuração** — confere a chave da Meta sem publicar nada.
+- **Gerar Reel** — monta um Reel das peças (vídeo com trilha própria) e cria o post como **rascunho** na Central (Marketing › Posts) para aprovação. Roda quando alguém pede no sistema, no Reel da semana (se ligado) ou à mão em *Actions › Gerar Reel › Run workflow*. O código fica em `reel/` (Remotion + Tone.js + FFmpeg).
 
 ## Segurança
 Nenhuma senha ou chave fica nos arquivos. A chave da Meta fica em *Settings → Secrets and variables → Actions*:

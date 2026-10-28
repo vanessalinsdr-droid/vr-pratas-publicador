@@ -1,0 +1,89 @@
+name: Gerar Reel
+# Robô de Reels: gera o vídeo das peças (Remotion + trilha Tone.js), envia para o Storage
+# e cria o post como RASCUNHO na Central de Conteúdo. Nada vai ao ar sem aprovação.
+#  - Manual: Actions › "Gerar Reel" › Run workflow (pode informar SKUs, quantidade e título).
+#  - Automático: a cada 15 minutos confere se há pedido feito no sistema ou se é hora do Reel da semana.
+on:
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+  workflow_dispatch:
+    inputs:
+      produtos:
+        description: "SKUs ou IDs das peças, separados por vírgula (vazio = o robô escolhe)"
+        required: false
+        default: ""
+      quantidade:
+        description: "Quantas peças (1 a 6)"
+        required: false
+        default: "3"
+      titulo:
+        description: "Título da abertura"
+        required: false
+        default: "Novidades"
+      subtitulo:
+        description: "Subtítulo da abertura"
+        required: false
+        default: "da semana"
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: reel
+  cancel-in-progress: false
+jobs:
+  verificar:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      fazer: ${{ steps.checar.outputs.fazer }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: reel
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Há Reel para fazer agora?
+        id: checar
+        working-directory: reel
+        run: node verificar.mjs
+
+  gerar:
+    needs: verificar
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.verificar.outputs.fazer == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: reel/package-lock.json
+      - name: Instalar FFmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Instalar dependências
+        working-directory: reel
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Gerar o Reel e mandar para aprovação
+        working-directory: reel
+        env:
+          MODO: ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'auto' }}
+          PRODUTOS: ${{ inputs.produtos }}
+          QUANTIDADE: ${{ inputs.quantidade }}
+          TITULO: ${{ inputs.titulo }}
+          SUBTITULO: ${{ inputs.subtitulo }}
+        run: node gerar.mjs
+      - name: Guardar o vídeo nesta execução (7 dias)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel
+          path: |
+            reel/saida/reel.mp4
+            reel/saida/capa.jpg
+          if-no-files-found: ignore
+          retention-days: 7

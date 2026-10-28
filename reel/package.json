@@ -1,0 +1,22 @@
+{
+  "name": "vr-pratas-reels",
+  "private": true,
+  "type": "module",
+  "description": "Robô de Reels: gera o vídeo das peças (Remotion + trilha Tone.js) e manda para aprovação na Central de Conteúdo.",
+  "scripts": {
+    "gerar": "node gerar.mjs",
+    "teste": "node gerar.mjs --teste"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "5.1.0",
+    "@fontsource/montserrat": "5.1.0",
+    "@remotion/bundler": "4.0.539",
+    "@remotion/renderer": "4.0.539",
+    "@remotion/transitions": "4.0.539",
+    "playwright": "1.48.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.539",
+    "tone": "15.0.4"
+  }
+}
