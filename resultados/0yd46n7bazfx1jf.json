@@ -1,5 +1,10 @@
 {
-  "status": "agendado",
-  "tentativas": 0,
-  "atualizadoEm": "2026-11-05T13:54:50.667Z"
+  "status": "publicado",
+  "publicadoEm": "2026-11-05T13:57:04.956Z",
+  "idRede": "18100660298207098",
+  "link": "https://www.instagram.com/p/DfXMJP9E9su/",
+  "motivo": "Peça não encontrada no catálogo do Instagram; publicado sem marcar o produto.",
+  "tentativas": 1,
+  "metricas": {},
+  "atualizadoEm": "2026-11-05T13:57:04.956Z"
 }
