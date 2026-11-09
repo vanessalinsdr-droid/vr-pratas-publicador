@@ -1,5 +1,10 @@
 {
-  "status": "agendado",
-  "tentativas": 0,
-  "atualizadoEm": "2026-11-09T18:48:31.952Z"
+  "status": "publicado",
+  "publicadoEm": "2026-11-09T18:54:11.136Z",
+  "idRede": "18014791307763516",
+  "link": "https://www.instagram.com/p/DfiBS3XD3nm/",
+  "motivo": "",
+  "tentativas": 1,
+  "metricas": {},
+  "atualizadoEm": "2026-11-09T18:54:11.136Z"
 }
